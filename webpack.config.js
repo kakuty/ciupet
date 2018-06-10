@@ -1,11 +1,12 @@
 var webpack = require("webpack"),
-    path = require("path"),
-    fileSystem = require("fs"),
-    env = require("./utils/env"),
-    CleanWebpackPlugin = require("clean-webpack-plugin"),
-    CopyWebpackPlugin = require("copy-webpack-plugin"),
-    HtmlWebpackPlugin = require("html-webpack-plugin"),
-    WriteFilePlugin = require("write-file-webpack-plugin");
+  path = require("path"),
+  fileSystem = require("fs"),
+  env = require("./utils/env"),
+  CleanWebpackPlugin = require("clean-webpack-plugin"),
+  CopyWebpackPlugin = require("copy-webpack-plugin"),
+  HtmlWebpackPlugin = require("html-webpack-plugin"),
+  WriteFilePlugin = require("write-file-webpack-plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 // load the secrets
 var alias = {};
@@ -20,8 +21,7 @@ if (fileSystem.existsSync(secretsPath)) {
 
 var options = {
   entry: {
-    popup: path.join(__dirname, "src", "js", "popup.js"),
-    options: path.join(__dirname, "src", "js", "options.js"),
+    main: path.join(__dirname, "src", "js", "main.js"),
     background: path.join(__dirname, "src", "js", "background.js")
   },
   output: {
@@ -29,8 +29,7 @@ var options = {
     filename: "[name].bundle.js"
   },
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.css$/,
         loader: "style-loader!css-loader",
         exclude: /node_modules/
@@ -51,6 +50,7 @@ var options = {
     alias: alias
   },
   plugins: [
+    new UglifyJsPlugin(),
     // clean the build folder
     new CleanWebpackPlugin(["build"]),
     // expose and write the allowed env vars on the compiled bundle
@@ -68,20 +68,14 @@ var options = {
         }))
       }
     }]),
+    new CopyWebpackPlugin([{
+      from: "src/css/style.css",
+      to: "css/style.css"
+    }]),
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src", "popup.html"),
-      filename: "popup.html",
-      chunks: ["popup"]
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src", "options.html"),
-      filename: "options.html",
-      chunks: ["options"]
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src", "background.html"),
-      filename: "background.html",
-      chunks: ["background"]
+      template: path.join(__dirname, "src", "page.html"),
+      filename: "page.html",
+      chunks: ["page"]
     }),
     new WriteFilePlugin()
   ]
